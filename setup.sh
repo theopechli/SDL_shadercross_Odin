@@ -21,16 +21,6 @@ mkdir -p "${SDL_SHADERCROSS_LIBS_DIR}"
 
 cd "${SDL_SHADERCROSS_DIR}"
 
-git submodule init
-git submodule update --recursive
-
-cd "${DIRECTX_SHADER_COMPILER_DIR}"
-
-git submodule init
-git submodule update
-
-cd "${SDL_SHADERCROSS_DIR}"
-
 cmake -S external/SPIRV-Cross -B spirv_cross_build -GNinja \
       -DCMAKE_BUILD_TYPE=Release \
       -DSPIRV_CROSS_SHARED=ON \
