@@ -109,13 +109,13 @@ cmake --build build
 cp -f \
    "${SDL_BUILD_DIR}/libSDL3.so" \
    "${SDL_BUILD_DIR}/libSDL3.so.0" \
-   "${SDL_BUILD_DIR}/libSDL3.so.0.1.11" \
+   "${SDL_BUILD_DIR}/libSDL3.so.0.2.1" \
    "${SDL_LIBS_DIR}"
 
 cp -f \
    "${SDL_BUILD_DIR}/libSDL3.so" \
    "${SDL_BUILD_DIR}/libSDL3.so.0" \
-   "${SDL_BUILD_DIR}/libSDL3.so.0.1.11" \
+   "${SDL_BUILD_DIR}/libSDL3.so.0.2.1" \
    "${LIBS_DIR}"
 
 cd "${PROJECT_DIR}"
