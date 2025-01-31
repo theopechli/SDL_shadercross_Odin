@@ -31,6 +31,7 @@ Execute any of the following commands from the root of the repository.
 1. Run `setup.sh`, which will generate the libraries needed to build and run the above example.
 1. Build with `./build_debug.sh` or `./build_release.sh`
 1. Run `./game_debug.bin` or `./game_release.bin`
+1. While running the game in *debug* mode, press 'R' to recompile the shaders.
 
 ## Credits
 
