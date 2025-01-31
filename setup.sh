@@ -102,9 +102,6 @@ mkdir -p "${SDL_LIBS_DIR}"
 
 cd "${SDL_DIR}"
 
-git submodule init
-git submodule update
-
 cmake -S . -B "${SDL_BUILD_DIR}" -GNinja \
       -DCMAKE_BUILD_TYPE=Release
 cmake --build build
