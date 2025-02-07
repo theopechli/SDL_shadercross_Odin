@@ -100,10 +100,14 @@ init :: proc() {
 }
 
 init_window :: proc() {
-	sdl.InitSubSystem({.VIDEO, .EVENTS})
+	if !sdl.InitSubSystem({.VIDEO, .EVENTS}) {
+		log.errorf("Failed to initialize video and events subsystems: [%v]", sdl.GetError())
+		shutdown()
+		return
+	}
 
 	game_state.gpu_device = sdl.CreateGPUDevice(
-		.SPIRV | .DXIL | .MSL,
+		{ .SPIRV, .DXIL, .MSL },
 		false,
 		nil,
 	)
@@ -165,22 +169,40 @@ update :: proc() {
 draw :: proc() {
 	cmdbuf := sdl.AcquireGPUCommandBuffer(game_state.gpu_device)
 	swapchain_texture: ^sdl.GPUTexture
-	sdl.WaitAndAcquireGPUSwapchainTexture(cmdbuf, game_state.window, &swapchain_texture, nil, nil)
 
-	if (swapchain_texture != nil) {
-		color_target_info: sdl.GPUColorTargetInfo
-		color_target_info.texture = swapchain_texture
-		color_target_info.clear_color = { 0.82, 0.74, 0.68, 1.0 }
-		color_target_info.load_op = .CLEAR
-		color_target_info.store_op = .STORE
-
-		render_pass := sdl.BeginGPURenderPass(cmdbuf, &color_target_info, 1, nil)
-		sdl.BindGPUGraphicsPipeline(render_pass, game_state.fill_pipeline)
-		sdl.DrawGPUPrimitives(render_pass, 3, 1, 0, 0)
-		sdl.EndGPURenderPass(render_pass)
+	if !sdl.WaitAndAcquireGPUSwapchainTexture(
+		cmdbuf,
+		game_state.window,
+		&swapchain_texture,
+		nil,
+		nil,
+	) {
+		log.errorf("Failed to acquire swapchain texture: [%v]", sdl.GetError())
+		shutdown()
+		return
 	}
 
-	sdl.SubmitGPUCommandBuffer(cmdbuf)
+	if swapchain_texture == nil {
+		if !sdl.CancelGPUCommandBuffer(cmdbuf) {
+			log.errorf("Failed to cancel command buffer: [%v]", sdl.GetError())
+		}
+		return
+	}
+
+	color_target_info: sdl.GPUColorTargetInfo
+	color_target_info.texture = swapchain_texture
+	color_target_info.clear_color = { 0.82, 0.74, 0.68, 1.0 }
+	color_target_info.load_op = .CLEAR
+	color_target_info.store_op = .STORE
+
+	render_pass := sdl.BeginGPURenderPass(cmdbuf, &color_target_info, 1, nil)
+	sdl.BindGPUGraphicsPipeline(render_pass, game_state.fill_pipeline)
+	sdl.DrawGPUPrimitives(render_pass, 3, 1, 0, 0)
+	sdl.EndGPURenderPass(render_pass)
+
+	if !sdl.SubmitGPUCommandBuffer(cmdbuf) {
+		log.errorf("Failed to submit command buffer: [%v]", sdl.GetError())
+	}
 }
 
 init_shaders :: proc() {
@@ -253,7 +275,7 @@ init_shaders :: proc() {
 	pipeline_create_info.rasterizer_state.fill_mode = .FILL
 	tmp_fill_pipeline := sdl.CreateGPUGraphicsPipeline(
 		game_state.gpu_device,
-		&pipeline_create_info,
+		pipeline_create_info,
 	)
 	if tmp_fill_pipeline == nil {
 		log.errorf("Failed to create GPU graphics pipeline: [%v]", sdl.GetError())
@@ -286,17 +308,16 @@ compile_shader :: proc(
 	entrypoint: cstring
 
 	shader_formats := sdl.GetGPUShaderFormats(gpu_device)
-	#partial switch(shader_formats) {
-		case .SPIRV:
+	if .SPIRV in shader_formats {
 		full_path = fmt.tprintf("{0}{1}{2}", game_state.base_path, SHADERS_DIR, filename)
 		entrypoint = "main"
-		case .DXIL:
+	} else if .DXIL in shader_formats {
 		full_path = fmt.tprintf("{0}{1}{2}", game_state.base_path, SHADERS_DIR, filename)
 		entrypoint = "main"
-		case .MSL:
+	} else if .MSL in shader_formats {
 		full_path = fmt.tprintf("{0}{1}{2}", game_state.base_path, SHADERS_DIR, filename)
 		entrypoint = "main0"
-		case:
+	} else {
 		log.error("Invalid GPU shader format")
 		return nil
 	}
@@ -347,26 +368,25 @@ load_shader :: proc(
 
 	full_path: string
 	entrypoint: cstring
-	format: sdl.GPUShaderFormat = .INVALID
+	format: sdl.GPUShaderFormat
 
 	shader_formats := sdl.GetGPUShaderFormats(gpu_device)
-	#partial switch(shader_formats) {
-		case .SPIRV:
+	if .SPIRV in shader_formats {
 		filename, _ = strings.replace(filename, ".hlsl", ".spv", 1)
 		full_path = fmt.tprintf("{0}{1}SPIRV/{2}", game_state.base_path, SHADERS_DIR, filename)
-		format = .SPIRV
+		format = { .SPIRV }
 		entrypoint = "main"
-		case .DXIL:
+	} else if .DXIL in shader_formats {
 		filename, _ = strings.replace(filename, ".hlsl", ".dxil", 1)
 		full_path = fmt.tprintf("{0}{1}DXIL/{2}", game_state.base_path, SHADERS_DIR, filename)
-		format = .DXIL
+		format = { .DXIL }
 		entrypoint = "main"
-		case .MSL:
+	} else if .MSL in shader_formats {
 		filename, _ = strings.replace(filename, ".hlsl", ".msl", 1)
 		full_path = fmt.tprintf("{0}{1}MSL/{2}", game_state.base_path, SHADERS_DIR, filename)
-		format = .MSL
+		format = { .MSL }
 		entrypoint = "main0"
-		case:
+	} else {
 		log.error("Invalid GPU shader format")
 		return nil
 	}
@@ -386,7 +406,7 @@ load_shader :: proc(
 		num_storage_textures = storage_texture_count,
 	}
 
-	shader = sdl.CreateGPUShader(gpu_device, &shader_info)
+	shader = sdl.CreateGPUShader(gpu_device, shader_info)
 	if shader == nil {
 		log.errorf("Failed to create GPU shader [%s]: [%v]", filename, sdl.GetError())
 		return nil
