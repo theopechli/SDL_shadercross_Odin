@@ -2,3 +2,6 @@ compiled/
 bins/
 libs/
 *.bin
+*.exe
+*.pdb
+*.dll

@@ -1,7 +1,7 @@
 package sdl3
 
 when ODIN_OS == .Windows {
-	@(export) foreign import lib { "libs/windows/SDL3.dll" }
+	@(export) foreign import lib { "libs/windows/SDL3.lib" }
 } else when ODIN_OS == .Linux  {
 	@(export) foreign import lib { "libs/linux/libSDL3.so" }
 } else when ODIN_OS == .Darwin {

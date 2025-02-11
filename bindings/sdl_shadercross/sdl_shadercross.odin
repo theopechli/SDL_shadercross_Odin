@@ -6,10 +6,8 @@ import sdl "bindings:sdl3"
 
 when ODIN_OS == .Windows {
 	foreign import sdl_shadercross {
-		"libs/windows/SDL3_shadercross.dll",
-		"libs/windows/dxcompiler.dll",
-		"libs/windows/dxil.dll",
-		"libs/windows/spirv-cross-c-shared.dll",
+		"libs/windows/SDL3_shadercross.lib",
+		"libs/windows/spirv-cross-c-shared.lib",
 	}
 } else when ODIN_OS == .Linux  {
 	foreign import sdl_shadercross {
