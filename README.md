@@ -28,10 +28,17 @@ Execute any of the following commands from the root of the repository.
 
 ### Linux
 
-1. Run `setup.sh`, which will generate the libraries needed to build and run the above example.
+1. Run `./setup.sh`, which will generate the libraries needed to build and run the above example.
 1. Build with `./build_debug.sh` or `./build_release.sh`
 1. Run `./game_debug.bin` or `./game_release.bin`
 1. While running `./game_debug.bin`, press `R` to recompile the shaders.
+
+### Windows
+
+1. Run `.\setup.ps1`, which will generate the libraries needed to build and run the above example.
+1. Build with `.\build_debug.ps1` or `.\build_release.ps1`
+1. Run `.\game_debug.exe` or `.\game_release.exe`
+1. While running `.\game_debug.exe`, press `R` to recompile the shaders.
 
 ## Credits
 
