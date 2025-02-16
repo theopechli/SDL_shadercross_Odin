@@ -8,6 +8,35 @@ LIBS_DIR="${PROJECT_DIR}/libs/${OS}"
 mkdir -p "${BINS_DIR}" "${LIBS_DIR}"
 
 
+#### SDL ####
+
+SDL_DIR="${PROJECT_DIR}/third_party/SDL"
+SDL_BUILD_DIR="${SDL_DIR}/build"
+SDL_LIBS_DIR="${PROJECT_DIR}/bindings/sdl3/libs/${OS}"
+
+mkdir -p "${SDL_LIBS_DIR}"
+
+cd "${SDL_DIR}"
+
+cmake -S . -B "${SDL_BUILD_DIR}" -GNinja \
+      -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+
+cp -f \
+   "${SDL_BUILD_DIR}/libSDL3.so" \
+   "${SDL_BUILD_DIR}/libSDL3.so.0" \
+   "${SDL_BUILD_DIR}/libSDL3.so.0.2.1" \
+   "${SDL_LIBS_DIR}"
+
+cp -f \
+   "${SDL_BUILD_DIR}/libSDL3.so" \
+   "${SDL_BUILD_DIR}/libSDL3.so.0" \
+   "${SDL_BUILD_DIR}/libSDL3.so.0.2.1" \
+   "${LIBS_DIR}"
+
+cd "${PROJECT_DIR}"
+
+
 #### SDL_shadercross ####
 
 SDL_SHADERCROSS_DIR="${PROJECT_DIR}/third_party/SDL_shadercross"
@@ -40,6 +69,7 @@ cmake -S . -B build -GNinja \
       -DSDLSHADERCROSS_INSTALL=ON \
       -DSDLSHADERCROSS_INSTALL_RUNTIME=ON \
       -DSDLSHADERCROSS_INSTALL_CPACK=ON \
+      -DSDL3_DIR="${SDL_BUILD_DIR}" \
       -DCMAKE_PREFIX_PATH="${SPIRV_CROSS_BUILD_DIR}" \
       -DCMAKE_INSTALL_PREFIX="${SDL_SHADERCROSS_DIR}/sdl_shadercross_install_build"
 cmake --build build
@@ -88,34 +118,5 @@ cp -f \
    "${SDL_SHADERCROSS_BUILD_DIR}/shadercross" \
    "${DIRECTX_SHADER_COMPILER_BUILD_DIR}/bin/dxc" \
    "${BINS_DIR}"
-
-cd "${PROJECT_DIR}"
-
-
-#### SDL ####
-
-SDL_DIR="${PROJECT_DIR}/third_party/SDL"
-SDL_BUILD_DIR="${SDL_DIR}/build"
-SDL_LIBS_DIR="${PROJECT_DIR}/bindings/sdl3/libs/${OS}"
-
-mkdir -p "${SDL_LIBS_DIR}"
-
-cd "${SDL_DIR}"
-
-cmake -S . -B "${SDL_BUILD_DIR}" -GNinja \
-      -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-
-cp -f \
-   "${SDL_BUILD_DIR}/libSDL3.so" \
-   "${SDL_BUILD_DIR}/libSDL3.so.0" \
-   "${SDL_BUILD_DIR}/libSDL3.so.0.2.1" \
-   "${SDL_LIBS_DIR}"
-
-cp -f \
-   "${SDL_BUILD_DIR}/libSDL3.so" \
-   "${SDL_BUILD_DIR}/libSDL3.so.0" \
-   "${SDL_BUILD_DIR}/libSDL3.so.0.2.1" \
-   "${LIBS_DIR}"
 
 cd "${PROJECT_DIR}"
